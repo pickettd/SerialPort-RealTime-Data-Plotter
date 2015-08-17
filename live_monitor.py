@@ -2,12 +2,12 @@
 # -*- coding: cp1252 -*-
 #############################################################################
 ##
-## Spirtech (C) 2014 
+## Spirtech (C) 2014
 ## All rights reserved.
 ## File: cerbere_import.py
 ## Description: Cerbere2 import tool
 ##              export a ready to import sql file from two csv file : device.csv 
-##              and reseau.csv              
+##              and reseau.csv
 ##
 ## - clean csv file from quotes
 ## - read device.csv file and update the output sql file with the imported data
@@ -16,7 +16,7 @@
 ##  Author:   mba7
 ##  Email:    monta.bha@gmail.com
 #############################################################################
-""" 
+"""
 A serial port packet monitor that plots live data using PyQwt.
 
 The monitor expects to receive 8 bytes data packets with a line return
@@ -60,7 +60,7 @@ class PlottingDataMonitor(QMainWindow):
         self.g_samples      = [[], [], []]
         self.curve          = [None]*3
         self.gcurveOn       = [1]*3                 # by default all curve are plotted
-        self.csvdata        = []    
+        self.csvdata        = []
         
         self.create_menu()
         self.create_main_frame()
@@ -75,7 +75,7 @@ class PlottingDataMonitor(QMainWindow):
 
 
     def create_com_box(self):
-        """ 
+        """
         Purpose:   create the serial com groupbox
         Return:    return a layout of the serial com
         """
@@ -86,23 +86,25 @@ class PlottingDataMonitor(QMainWindow):
         self.radio9600     =    QRadioButton("9600")
         self.radio9600.setChecked(1)
         self.radio19200    =    QRadioButton("19200")
+        self.radio115200    =    QRadioButton("115200")
         self.Com_ComboBox  =    QComboBox()
 
-        com_layout.addWidget(self.Com_ComboBox,0,0,1,2)
+        com_layout.addWidget(self.Com_ComboBox,0,0,1,3)
         com_layout.addWidget(self.radio9600,1,0)
         com_layout.addWidget(self.radio19200,1,1)
+        com_layout.addWidget(self.radio115200,1,2)
         self.fill_ports_combobox()
 
         self.button_Connect      =   QPushButton("Start")
         self.button_Disconnect   =   QPushButton("Stop")
         self.button_Disconnect.setEnabled(False)
 
-        com_layout.addWidget(self.button_Connect,0,2)
-        com_layout.addWidget(self.button_Disconnect,1,2)        
+        com_layout.addWidget(self.button_Connect,0,3)
+        com_layout.addWidget(self.button_Disconnect,1,3)
 
         return com_layout
     #---------------------------------------------------------------------
-   
+
 
     def create_plot(self):
         """ 
@@ -151,7 +153,7 @@ class PlottingDataMonitor(QMainWindow):
 
 
     def create_checkbox(self, label, color, connect_fn, connect_param):
-        """ 
+        """
         Purpose:    create a personalized checkbox
         Input:      the label, color, activated function and the transmitted parameter
         Return:     return a checkbox widget
@@ -168,7 +170,7 @@ class PlottingDataMonitor(QMainWindow):
 
 
     def create_main_frame(self):
-        """ 
+        """
         Purpose:    create the main frame Qt widget
         """
         # Serial communication combo box
@@ -204,7 +206,7 @@ class PlottingDataMonitor(QMainWindow):
 
         self.connect(self.button_clear, SIGNAL("clicked()"),
                     self.clear_screen)
-        
+
         # Place the horizontal panel widget
         plot_layout = QGridLayout()
         plot_layout.addWidget(self.plot,0,0,8,7)
@@ -234,7 +236,7 @@ class PlottingDataMonitor(QMainWindow):
     def clear_screen(self):
         g_samples[0] = []
     #-----------------------------
-        
+
 
     def activate_curve(self, axe):
         if self.gCheckBox[axe].isChecked():
@@ -264,8 +266,8 @@ class PlottingDataMonitor(QMainWindow):
                 None, exit_action))
             
         self.help_menu = self.menuBar().addMenu("&Help")
-        about_action = self.create_action("&About", 
-            shortcut='F1', slot=self.on_about, 
+        about_action = self.create_action("&About",
+            shortcut='F1', slot=self.on_about,
             tip='About the monitor')
         
         self.add_actions(self.help_menu, (about_action,))
@@ -289,7 +291,6 @@ class PlottingDataMonitor(QMainWindow):
         QMessageBox.about(self, "About the demo", msg.strip())
     #-----------------------------------------------
 
-    
 
     def on_select_port(self):
         
@@ -304,7 +305,7 @@ class PlottingDataMonitor(QMainWindow):
                     'Serial port:', ports, 0, False)
         
         if ok and not item.isEmpty():
-            self.portname.setText(item)            
+            self.portname.setText(item)
             self.set_actions_enable_state()
     #-----------------------------------------------
 
@@ -318,21 +319,24 @@ class PlottingDataMonitor(QMainWindow):
         for value in self.AvailablePorts:
             self.Com_ComboBox.addItem(value)
             vNbCombo += value + " - "
-        vNbCombo = vNbCombo[:-3] 
+        vNbCombo = vNbCombo[:-3]
 
         debug(("--> Les ports series disponibles sont: %s " % (vNbCombo)))
     #----------------------------------------------------------------------
 
 
     def OnStart(self):
-        """ Start the monitor: com_monitor thread and the update timer     
+        """ Start the monitor: com_monitor thread and the update timer
         """
+        if self.radio115200.isChecked():
+            self.baudrate = 115200
+            print "--> baudrate is 115200 bps"
         if self.radio19200.isChecked():
             self.baudrate = 19200
             print "--> baudrate is 19200 bps"
         if self.radio9600.isChecked():
             self.baudrate = 9600
-            print "--> baudrate is 9600 bps"  
+            print "--> baudrate is 9600 bps"
 
         vNbCombo    = self.Com_ComboBox.currentIndex()
         self.port   = self.AvailablePorts[vNbCombo]
@@ -349,7 +353,7 @@ class PlottingDataMonitor(QMainWindow):
                                             self.port,
                                             self.baudrate)
         
-        self.com_monitor.start()  
+        self.com_monitor.start()
 
         com_error = get_item_from_queue(self.error_q)
         if com_error is not None:
@@ -393,7 +397,7 @@ class PlottingDataMonitor(QMainWindow):
         """
         self.read_serial_data()
         self.update_monitor()
-	#-----------------------------------------------
+    #-----------------------------------------------
 
 
     def on_knob_change(self):
@@ -429,7 +433,7 @@ class PlottingDataMonitor(QMainWindow):
                 finally:
                     f.close()
                 self.csvdata = []
-            
+
             self.g_samples[0].append(
                 (data['timestamp'], data['gx']))
             if len(self.g_samples[0]) > 100:
@@ -458,12 +462,12 @@ class PlottingDataMonitor(QMainWindow):
             debug("tdata", data[2])
             """
 
-            self.plot.setAxisScale(Qwt.QwtPlot.xBottom, tdata[0], max(5, tdata[-1]) )        
+            self.plot.setAxisScale(Qwt.QwtPlot.xBottom, tdata[0], max(5, tdata[-1]) )
             
             self.plot.replot()
     #-----------------------------------------------
-            
-            
+
+
     def read_serial_data(self):
         """ Called periodically by the update timer to read data
             from the serial port.
@@ -481,7 +485,6 @@ class PlottingDataMonitor(QMainWindow):
     #-----------------------------------------------
 
 
-    
     # The following two methods are utilities for simpler creation
     # and assignment of actions
     #
@@ -512,7 +515,6 @@ class PlottingDataMonitor(QMainWindow):
         return action
     #-----------------------------------------------
 
-    
 
 def main():
     app = QApplication(sys.argv)
@@ -523,6 +525,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-    
-
