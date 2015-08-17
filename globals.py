@@ -1,5 +1,5 @@
 
-import  random, sys, Queue, serial, glob, os, csv, time
+import  random, sys, Queue, serial, glob, platform, csv, time
 
 # ADXL345 constants
 EARTH_GRAVITY_MS2   = 9.80665
@@ -11,9 +11,9 @@ YMIN				=   -4.000
 ktrace = 0
 
 class LiveDataFeed(object):
-    """ A simple "live data feed" abstraction that allows a reader 
-        to read the most recent data and find out whether it was 
-        updated since the last read. 
+    """ A simple "live data feed" abstraction that allows a reader
+        to read the most recent data and find out whether it was
+        updated since the last read.
         
         Interface to data writer:
         
@@ -27,7 +27,7 @@ class LiveDataFeed(object):
             
         has_new_data:
             A boolean attribute telling the reader whether the
-            data was updated since the last read.    
+            data was updated since the last read.
     """
     def __init__(self):
         self.cur_data = None
@@ -78,7 +78,7 @@ def get_item_from_queue(Q, timeout=0.01):
         so don't use this method for speedy retrieval of multiple
         items (use get_all_from_queue for that).
     """
-    try: 
+    try:
         item = Q.get(True, 0.01)
     except Queue.Empty: 
         return None
@@ -90,16 +90,21 @@ def enumerate_serial_ports():
     Purpose:        scan for available serial ports
     Return:         return a list of of the availables ports names
     """
-    if os.name  == 'nt':
+    system_name = platform.system()
+    if system_name == "Windows":
         outAvailablePorts = []
         for i in range(256):
             try:
                 s = serial.Serial(i)
                 outAvailablePorts.append(s.portstr)
-                s.close()   
+                s.close()
             except serial.SerialException:
                 pass
         return outAvailablePorts
+    elif system_name == "Darwin":
+        # Mac
+        return glob.glob('/dev/tty*') + glob.glob('/dev/cu*')
     else:
-        return glob.glob('/dev/tty.*')
+        # Assume Linux or something else
+        return glob.glob('/dev/ttyS*') + glob.glob('/dev/ttyUSB*')
 #----------------------------------------------------------------------
