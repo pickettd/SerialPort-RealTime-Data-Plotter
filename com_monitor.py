@@ -1,5 +1,5 @@
 
-import Queue, threading, time, serial
+import Queue, threading, timeit, serial
 from globals            import *
 
 
@@ -99,7 +99,7 @@ class ComMonitorThread(threading.Thread):
             return
         
         # Restart the clock
-        startTime = time.time()
+        startTime = timeit.default_timer()
         
         while self.alive.isSet():
           
@@ -109,8 +109,13 @@ class ComMonitorThread(threading.Thread):
             #use map(int) for simulation
             data = map(ord, bytes)
             qdata = [0,0,0]
+            if len(data) == 0:
+                print "zero data"
+                timestamp = timeit.default_timer() - startTime
+                self.data_q.put((qdata, timestamp))
+
             if len(data) == 6:
-                timestamp = time.time() - startTime
+                timestamp = timeit.default_timer() - startTime
                 #data = list(map(ord, list(Line)))
 
                 print "Line", Line
@@ -127,11 +132,9 @@ class ComMonitorThread(threading.Thread):
                 qdata[1] = axes['y']
                 qdata[2] = axes['z']
                 print "qdata :", qdata
-                timestamp = time.clock()
+                #timestamp = timeit.default_timer()
                 self.data_q.put((qdata, timestamp))
 
-               
-            
         # clean up
         if self.serial_port:
             self.serial_port.close()
