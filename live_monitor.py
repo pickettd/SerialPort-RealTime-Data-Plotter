@@ -83,16 +83,16 @@ class PlottingDataMonitor(QMainWindow):
 
         com_layout = QGridLayout()
 
-        self.radio9600     =    QRadioButton("9600")
-        self.radio9600.setChecked(1)
-        self.radio19200    =    QRadioButton("19200")
         self.radio115200    =    QRadioButton("115200")
+        self.radio115200.setChecked(1)
+        self.radio19200    =    QRadioButton("19200")
+        self.radio9600     =    QRadioButton("9600")
         self.Com_ComboBox  =    QComboBox()
 
         com_layout.addWidget(self.Com_ComboBox,0,0,1,3)
-        com_layout.addWidget(self.radio9600,1,0)
+        com_layout.addWidget(self.radio115200,1,0)
         com_layout.addWidget(self.radio19200,1,1)
-        com_layout.addWidget(self.radio115200,1,2)
+        com_layout.addWidget(self.radio9600,1,2)
         self.fill_ports_combobox()
 
         self.button_Connect      =   QPushButton("Start")
@@ -141,7 +141,7 @@ class PlottingDataMonitor(QMainWindow):
         knob.setRange(0, 180, 0, 1)
         knob.setScaleMaxMajor(10)
         knob.setKnobWidth(50)
-        knob.setValue(10)
+        knob.setValue(180)
         return knob
     #---------------------------------------------------
 
@@ -189,8 +189,8 @@ class PlottingDataMonitor(QMainWindow):
 
         # Create the configuration horizontal panel
         self.max_spin    = QSpinBox()
-        self.max_spin.setMaximum(1000)
-        self.max_spin.setValue(1000)
+        self.max_spin.setMaximum(10000)
+        self.max_spin.setValue(10000)
         spins_hbox      = QHBoxLayout()
         spins_hbox.addWidget(QLabel('Save every'))
         spins_hbox.addWidget(self.max_spin)
@@ -234,7 +234,11 @@ class PlottingDataMonitor(QMainWindow):
 
 
     def clear_screen(self):
-        g_samples[0] = []
+        self.g_samples = [[], [], []]
+        self.plot.setAxisScale(Qwt.QwtPlot.xBottom, 0, 10)
+        for i in range(3):
+            self.curve[i].setData([], [])
+        self.plot.replot()
     #-----------------------------
 
 
@@ -429,24 +433,24 @@ class PlottingDataMonitor(QMainWindow):
                     writer = csv.writer(f)
                     for i in range(self.max_spin.value()):
                         writer.writerow( self.csvdata[i] )
-                    print 'transfert data to csv after 1000 samples'
+                    print 'transfer data to csv after 10000 samples'
                 finally:
                     f.close()
                 self.csvdata = []
 
             self.g_samples[0].append(
                 (data['timestamp'], data['gx']))
-            if len(self.g_samples[0]) > 100:
+            if len(self.g_samples[0]) > 1000:
                 self.g_samples[0].pop(0)
 
             self.g_samples[1].append(
                 (data['timestamp'], data['gy']))
-            if len(self.g_samples[1]) > 100:
+            if len(self.g_samples[1]) > 1000:
                 self.g_samples[1].pop(0)
 
             self.g_samples[2].append(
                 (data['timestamp'], data['gz']))
-            if len(self.g_samples[2]) > 100:
+            if len(self.g_samples[2]) > 1000:
                 self.g_samples[2].pop(0)
 
             tdata = [s[0] for s in self.g_samples[2]]
@@ -462,8 +466,8 @@ class PlottingDataMonitor(QMainWindow):
             debug("tdata", data[2])
             """
 
-            self.plot.setAxisScale(Qwt.QwtPlot.xBottom, tdata[0], max(5, tdata[-1]) )
-            
+            #self.plot.setAxisScale(Qwt.QwtPlot.xBottom, tdata[0], max(10, tdata[-1]) )
+
             self.plot.replot()
     #-----------------------------------------------
 
