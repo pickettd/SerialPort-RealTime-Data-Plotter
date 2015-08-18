@@ -33,8 +33,8 @@ class ComMonitorThread(threading.Thread):
             grained chunks, with more accurate timestamps, but
             it will also consume more CPU.
     """
-    def __init__(   self, 
-                    data_q, error_q, 
+    def __init__(   self,
+                    data_q, error_q,
                     port_num,
                     port_baud,
                     port_stopbits = serial.STOPBITS_ONE,
@@ -91,9 +91,16 @@ class ComMonitorThread(threading.Thread):
         
     def run(self):
         try:
-            if self.serial_port: 
+            if self.serial_port:
                 self.serial_port.close()
+            setTimeout = self.serial_arg['timeout']
+            self.serial_arg['timeout'] = 100
             self.serial_port = serial.Serial(**self.serial_arg)
+            print(self.serial_port.readline())
+            self.serial_port.write("A")
+            print(self.serial_port.readline())
+            print(self.serial_port.readline())
+            self.serial_port.timeout = setTimeout
         except serial.SerialException, e:
             self.error_q.put(e.message)
             return
@@ -105,15 +112,21 @@ class ComMonitorThread(threading.Thread):
           
             Line = self.serial_port.readline()
             bytes = Line.split()
-            print bytes
+            #print bytes
             #use map(int) for simulation
-            data = map(ord, bytes)
+            #data = map(ord, bytes)
+            data = bytes
             qdata = [0,0,0]
             if len(data) == 0:
-                print "zero data"
+                #print "zero data"
                 timestamp = timeit.default_timer() - startTime
                 self.data_q.put((qdata, timestamp))
-
+            if len(data) > 0:
+                print "got data"
+                timestamp = timeit.default_timer() - startTime
+                qdata = [4,4,4]
+                self.data_q.put((qdata, timestamp))
+            '''
             if len(data) == 6:
                 timestamp = timeit.default_timer() - startTime
                 #data = list(map(ord, list(Line)))
@@ -134,6 +147,7 @@ class ComMonitorThread(threading.Thread):
                 print "qdata :", qdata
                 #timestamp = timeit.default_timer()
                 self.data_q.put((qdata, timestamp))
+            '''
 
         # clean up
         if self.serial_port:
